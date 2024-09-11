@@ -1,12 +1,14 @@
 const state = require('./StateService');
 
 class GameService {
-    constructor(socket) {
-        this.socket = socket;
+    constructor(client, emitAllFn) {
+        this.client = client;
+        this.emitAllFn = emitAllFn;
 
-        this.socket.on('playerJoined', this.handlePlayerJoined.bind(this));
-        this.socket.on('holdRightKey', this.handleHoldRightKey.bind(this));
-        this.socket.on('releaseRightKey', this.handleReleaseRightKey.bind(this));
+        this.client.on('playerJoined', this.handlePlayerJoined.bind(this));
+        this.client.on('holdRightKey', this.handleHoldRightKey.bind(this));
+        this.client.on('releaseRightKey', this.handleReleaseRightKey.bind(this));
+        this.client.on('disconnect', this.handleDisconnect.bind(this));
         this.playerColors = ['blue', 'red', 'green'];
         this.playerSize = 30;
         this.limitRight = 640; 
@@ -15,25 +17,32 @@ class GameService {
 
     handlePlayerJoined() {
         const color = this.playerColors[state.players.length];
-        const player = { x: 0, y: 0, size: this.playerSize, color };
+        const player = { x: 0, y: 0, size: this.playerSize, color, id: this.client.id };
         let collided = false;
         do {
             collided = this.isCollidedAny(player, state.players);
             if (collided) {
-                console.log('collided');
                 player.x = player.x + player.size;
                 player.y = player.y + player.size;
             } else {
-                console.log('not collided');
-                state.players.push({ ...player, id: `player${state.players.length + 1}` });
+                state.players.push(player);
             }
         } while (collided || player.x >= this.limitRight - player.size || player.y >= this.limitBottom - player.size);
-        this.socket.emit('updatePlayers', state.players);
+        this.emitAllFn('updatePlayers', state.players);
     }
 
     handleHoldRightKey() {}
 
     handleReleaseRightKey() {}
+
+    handleDisconnect() {
+        console.log(`client ${this.client.id} disconnected`);
+        const deleteIndex = state.players.findIndex(p => p.id === this.client.id);
+        if (deleteIndex >= 0) {
+            state.players.splice(deleteIndex, 1);
+            this.emitAllFn('updatePlayers', state.players);
+        }
+    }
 
     isCollidedAny(item, itemsCollidedTo) {
         const itemCollidedTo = itemsCollidedTo.find(i => {

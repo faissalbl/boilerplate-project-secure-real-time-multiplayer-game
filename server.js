@@ -62,5 +62,5 @@ const io = socketIO(server, {
 
 io.on('connection', client => {
   console.log(`client connected with id: ${client.id}`);
-  const gameService = new GameService(client);
+  const gameService = new GameService(client, io.emit.bind(io));
 });
