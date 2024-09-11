@@ -6,8 +6,7 @@ class GameService {
         this.emitAllFn = emitAllFn;
 
         this.client.on('playerJoined', this.handlePlayerJoined.bind(this));
-        this.client.on('holdRightKey', this.handleHoldRightKey.bind(this));
-        this.client.on('releaseRightKey', this.handleReleaseRightKey.bind(this));
+        this.client.on('playerMoved', this.handlePlayerMoved.bind(this));
         this.client.on('disconnect', this.handleDisconnect.bind(this));
         this.playerColors = ['blue', 'red', 'green'];
         this.playerSize = 30;
@@ -28,12 +27,16 @@ class GameService {
                 state.players.push(player);
             }
         } while (collided || player.x >= this.limitRight - player.size || player.y >= this.limitBottom - player.size);
+        this.client.emit('currentPlayer', player);
         this.emitAllFn('updatePlayers', state.players);
     }
 
-    handleHoldRightKey() {}
-
-    handleReleaseRightKey() {}
+    handlePlayerMoved({ x, y }) {
+        const currentPlayer = state.players.find(p => p.id === this.client.id);
+        currentPlayer.x = x;
+        currentPlayer.y = y;
+        this.emitAllFn('updatePlayers', state.players);
+    }
 
     handleDisconnect() {
         console.log(`client ${this.client.id} disconnected`);
