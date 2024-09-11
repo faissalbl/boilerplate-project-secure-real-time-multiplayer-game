@@ -2,7 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const expect = require('chai');
-const socket = require('socket.io');
+const socketIO = require('socket.io');
+const GameService = require('./services/GameService');
 const cors = require('cors');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
@@ -54,3 +55,12 @@ const server = app.listen(portNum, () => {
 });
 
 module.exports = app; // For testing
+
+const io = socketIO(server, {
+  origins: '*:*' // This allows any origin
+});
+
+io.on('connection', client => {
+  console.log(`client connected with id: ${client.id}`);
+  const gameService = new GameService(client);
+});
