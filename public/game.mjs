@@ -51,14 +51,22 @@ function keydownHandler(e) {
         moveRightInterval();
     } else if ([37, 65].includes(e.keyCode)) {
         moveLeftInterval();
+    } else if ([40, 83].includes(e.keyCode)) {
+        moveDownInterval();
+    } else if ([38, 87].includes(e.keyCode)) {
+        moveUpInterval();
     }
 }
 
 function keyupHandler(e) {
-    if ([39, 87].includes(e.keyCode)) {
+    if ([39, 68].includes(e.keyCode)) {
         stopMovingRight();
     } else if ([37, 65].includes(e.keyCode)) {
         stopMovingLeft();
+    } else if ([40, 83].includes(e.keyCode)) {
+        stopMovingDown();
+    } else if ([38, 87].includes(e.keyCode)) {
+        stopMovingUp();
     }
 }
 

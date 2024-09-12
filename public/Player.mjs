@@ -16,6 +16,12 @@ class Player {
       case "left":
         this.x -= speed;
         break;
+      case "down":
+        this.y += speed;
+        break;
+      case "up":
+        this.y -= speed;
+        break;
     }
   }
 
