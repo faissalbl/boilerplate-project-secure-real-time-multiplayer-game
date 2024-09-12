@@ -16,7 +16,8 @@ let currentCollectible;
 addKeyEvents();
 
 socket.on('currentPlayer', handleCurrentPlayer);
-socket.on('updatePlayers', handleUpdatePlayers);
+socket.on('updatePlayer', handleUpdatePlayer);
+socket.on('deletePlayer', handleDeletePlayer);
 socket.on('updateCollectible', handleUpdateCollectible);
 
 socket.emit('playerJoined');
@@ -25,43 +26,47 @@ function handleCurrentPlayer(player) {
     currentPlayer = new Player(player);
 }
 
-function handleUpdatePlayers(players) {
-    requestAnimationFrame(() => drawPlayers(players));
+function handleUpdatePlayer(newPlayer, oldPlayer) {
+    requestAnimationFrame(() => drawRect(newPlayer, oldPlayer));
+}
+
+function handleDeletePlayer(player) {
+    console.log('handling update player', player);
+    requestAnimationFrame(() => deleteItem(player));
 }
 
 function handleUpdateCollectible(newCollectible, oldCollectible) {
-    requestAnimationFrame(() => drawCollectible(newCollectible, oldCollectible));
+    currentCollectible = new Collectible(newCollectible);
+    requestAnimationFrame(() => drawCircle(newCollectible, oldCollectible));
 }
 
-function drawPlayers(players) {
-    context.clearRect(0, 0, canvasWidth, canvasHeight);
-    for (let p of players) {
-        const player = new Player({ x: p.x, y: p.y, score: 0, id: p.id, size: p.size, color: p.color });
-        drawPlayer(player);
+function drawRect(newItem, oldItem) {
+    deleteItem(oldItem);
+    context.fillStyle = newItem.color;
+    context.fillRect(newItem.x, newItem.y, newItem.size, newItem.size);
+}
+
+function deleteItem(item) {
+    if (item) {
+        context.clearRect(item.x, item.y, item.size, item.size);
     }
 }
 
-function drawPlayer(player) {
-    context.fillStyle = player.color;
-    context.fillRect(player.x, player.y, player.size, player.size);
-}
-
-function drawCollectible(newCollectible, oldCollectible) {
-    context.clearRect(oldCollectible.x, oldCollectible.y, oldCollectible.size, oldCollectible.size);
-    currentCollectible = new Collectible(newCollectible);
-    context.fillStyle = currentCollectible.color;
+function drawCircle(newItem, oldItem) {
+    deleteItem(oldItem);
+    context.fillStyle = newItem.color;
 
     // Set the starting position and circle properties
-    const x = newCollectible.x / 2;  // X-coordinate of the circle's center
-    const y = newCollectible.y / 2; // Y-coordinate of the circle's center
-    const radius = newCollectible.size / 2;          // Circle's radius
+    const x = newItem.x / 2;  // X-coordinate of the circle's center
+    const y = newItem.y / 2; // Y-coordinate of the circle's center
+    const radius = newItem.size / 2;          // Circle's radius
     const startAngle = 0;        // Start angle (0 radians = 0 degrees)
     const endAngle = 2 * Math.PI; // End angle (2π radians = 360 degrees)
 
     // Begin a new path to draw the circle
-    ctx.beginPath();
-    ctx.arc(x, y, radius, startAngle, endAngle);
-    ctx.fill();  // Draw the filled up circle
+    context.beginPath();
+    context.arc(x, y, radius, startAngle, endAngle);
+    context.fill();  // Draw the filled up circle
 }
 
 function addKeyEvents() {
