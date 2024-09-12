@@ -40,8 +40,8 @@ class GameService {
 
     createCollectible() {
         // create a collectible copying from a random collectible
-        collectibleIndex = Math.floor(Math.random() * state.collectibles.length);
-        newCollectible = {...state.collectibles[collectibleIndex]};
+        const collectibleIndex = Math.floor(Math.random() * state.collectibles.length);
+        const newCollectible = {...state.collectibles[collectibleIndex]};
         const oldCollectible = state.activeCollectible;
         this.addItemWithoutColliding(newCollectible, state.players, () => state.activeCollectible = newCollectible);
         this.emitAllFn('updateCollectible', state.newCollectible, oldCollectible);
@@ -50,7 +50,7 @@ class GameService {
     addItemWithoutColliding(item, existingItems, addItemCallback) {
         let collided = false;
         do {
-            collided = this.isCollidedAny(item, items);
+            collided = this.isCollidedAny(item, existingItems);
             if (collided) {
                 const randomX = Math.random() * (this.limitRight - item.size);
                 const randomY = Math.random() * (this.limitBottom - item.size);
