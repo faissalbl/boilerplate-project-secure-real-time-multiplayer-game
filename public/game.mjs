@@ -11,11 +11,13 @@ const speed = 5;
 const framesPerSecond = 50;
 
 let currentPlayer;
+let currentCollectible;
 
 addKeyEvents();
 
 socket.on('currentPlayer', handleCurrentPlayer);
 socket.on('updatePlayers', handleUpdatePlayers);
+socket.on('updateCollectible', handleUpdateCollectible);
 
 socket.emit('playerJoined');
 
@@ -25,6 +27,10 @@ function handleCurrentPlayer(player) {
 
 function handleUpdatePlayers(players) {
     requestAnimationFrame(() => drawPlayers(players));
+}
+
+function handleUpdateCollectible(newCollectible, oldCollectible) {
+    requestAnimationFrame(() => drawCollectible(newCollectible, oldCollectible));
 }
 
 function drawPlayers(players) {
@@ -38,6 +44,24 @@ function drawPlayers(players) {
 function drawPlayer(player) {
     context.fillStyle = player.color;
     context.fillRect(player.x, player.y, player.size, player.size);
+}
+
+function drawCollectible(newCollectible, oldCollectible) {
+    context.clearRect(oldCollectible.x, oldCollectible.y, oldCollectible.size, oldCollectible.size);
+    currentCollectible = new Collectible(newCollectible);
+    context.fillStyle = currentCollectible.color;
+
+    // Set the starting position and circle properties
+    const x = newCollectible.x / 2;  // X-coordinate of the circle's center
+    const y = newCollectible.y / 2; // Y-coordinate of the circle's center
+    const radius = newCollectible.size / 2;          // Circle's radius
+    const startAngle = 0;        // Start angle (0 radians = 0 degrees)
+    const endAngle = 2 * Math.PI; // End angle (2π radians = 360 degrees)
+
+    // Begin a new path to draw the circle
+    ctx.beginPath();
+    ctx.arc(x, y, radius, startAngle, endAngle);
+    ctx.fill();  // Draw the filled up circle
 }
 
 function addKeyEvents() {

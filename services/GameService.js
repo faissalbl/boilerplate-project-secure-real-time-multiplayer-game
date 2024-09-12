@@ -17,16 +17,7 @@ class GameService {
     handlePlayerJoined() {
         const color = this.playerColors[state.players.length];
         const player = { x: 0, y: 0, size: this.playerSize, color, id: this.client.id };
-        let collided = false;
-        do {
-            collided = this.isCollidedAny(player, state.players);
-            if (collided) {
-                player.x = player.x + player.size;
-                player.y = player.y + player.size;
-            } else {
-                state.players.push(player);
-            }
-        } while (collided || player.x >= this.limitRight - player.size || player.y >= this.limitBottom - player.size);
+        this.addItemWithoutColliding(player, state.players, () => state.players.push(player));
         this.client.emit('currentPlayer', player);
         this.emitAllFn('updatePlayers', state.players);
     }
@@ -45,6 +36,30 @@ class GameService {
             state.players.splice(deleteIndex, 1);
             this.emitAllFn('updatePlayers', state.players);
         }
+    }
+
+    createCollectible() {
+        // create a collectible copying from a random collectible
+        collectibleIndex = Math.floor(Math.random() * state.collectibles.length);
+        newCollectible = {...state.collectibles[collectibleIndex]};
+        const oldCollectible = state.activeCollectible;
+        this.addItemWithoutColliding(newCollectible, state.players, () => state.activeCollectible = newCollectible);
+        this.emitAllFn('updateCollectible', state.newCollectible, oldCollectible);
+    }
+
+    addItemWithoutColliding(item, existingItems, addItemCallback) {
+        let collided = false;
+        do {
+            collided = this.isCollidedAny(item, items);
+            if (collided) {
+                const randomX = Math.random() * (this.limitRight - item.size);
+                const randomY = Math.random() * (this.limitBottom - item.size);
+                item.x = randomX;
+                item.y = randomY;
+            } else {
+                addItemCallback();
+            }
+        } while (collided);
     }
 
     isCollidedAny(item, itemsCollidedTo) {
