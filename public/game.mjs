@@ -47,7 +47,7 @@ function addKeyEvents() {
 
 function keydownHandler(e) {
     // move right
-    if ([39, 87].includes(e.keyCode)) {
+    if ([39, 68].includes(e.keyCode)) {
         moveRightInterval();
     } else if ([37, 65].includes(e.keyCode)) {
         moveLeftInterval();
