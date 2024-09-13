@@ -19,7 +19,8 @@ class GameService {
         const player = { x: 0, y: 0, size: this.playerSize, color, id: this.client.id };
         this.addItemWithoutColliding(player, state.players, () => state.players.push(player));
         this.client.emit('currentPlayer', player);
-        this.emitAllFn('updatePlayer', player);
+        this.client.emit('drawGame', state);
+        this.client.broadcast.emit('updatePlayer', player);
         // if the first player joined, add the collectible, otherwise the collectible should
         // already be there.
         if (state.players.length === 1) this.createCollectible();
@@ -32,13 +33,14 @@ class GameService {
         // even after they move out of each other, to make sure that the UI knows
         // to reprint the players that were overridden by others.
         const collidedPlayers = this.getItemsCollided(currentPlayer, state.players);
+        for (let collidedPlayer of collidedPlayers) {
+            this.emitAllFn('updatePlayer', collidedPlayer, collidedPlayer);
+        }
+
         const oldPlayer = {...currentPlayer};
         currentPlayer.x = x;
         currentPlayer.y = y;
         this.emitAllFn('updatePlayer', currentPlayer, oldPlayer);
-        for (let collidedPlayer of collidedPlayers) {
-            this.emitAllFn('updatePlayer', collidedPlayer, collidedPlayer);
-        }
     }
 
     handleDisconnect() {

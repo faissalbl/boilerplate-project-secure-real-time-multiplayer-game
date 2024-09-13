@@ -16,6 +16,7 @@ let currentCollectible;
 addKeyEvents();
 
 socket.on('currentPlayer', handleCurrentPlayer);
+socket.on('drawGame', handleDrawGame);
 socket.on('updatePlayer', handleUpdatePlayer);
 socket.on('deletePlayer', handleDeletePlayer);
 socket.on('updateCollectible', handleUpdateCollectible);
@@ -24,6 +25,14 @@ socket.emit('playerJoined');
 
 function handleCurrentPlayer(player) {
     currentPlayer = new Player(player);
+}
+
+function handleDrawGame(state) {
+    for (let player of state.players) {
+        handleUpdatePlayer(player);
+    }
+    currentCollectible = new Collectible(state.activeCollectible);
+    handleUpdateCollectible(state.activeCollectible);
 }
 
 function handleUpdatePlayer(newPlayer, oldPlayer) {
