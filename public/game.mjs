@@ -12,6 +12,7 @@ const framesPerSecond = 50;
 
 let currentPlayer;
 let currentCollectible;
+const players = [];
 
 addKeyEvents();
 
@@ -36,17 +37,28 @@ function handleDrawGame(state) {
 }
 
 function handleUpdatePlayer(newPlayer, oldPlayer) {
+    const existingPlayerIndex = players.findIndex(p => p.id === newPlayer.id);
+    let existingPlayer;
+    if (existingPlayerIndex >= 0) {
+        existingPlayer = players[existingPlayerIndex];
+    }
+
+    if (existingPlayer) {
+        players[existingPlayerIndex] = newPlayer;
+    } else {
+        players.push(newPlayer);
+    }
+
     requestAnimationFrame(() => drawRect(newPlayer, oldPlayer));
 }
 
 function handleDeletePlayer(player) {
-    console.log('handling update player', player);
     requestAnimationFrame(() => deleteItem(player));
 }
 
 function handleUpdateCollectible(newCollectible, oldCollectible) {
     currentCollectible = new Collectible(newCollectible);
-    requestAnimationFrame(() => drawCircle(newCollectible, oldCollectible));
+    requestAnimationFrame(() => drawCircle(currentCollectible, oldCollectible));
 }
 
 function drawRect(newItem, oldItem) {
@@ -57,6 +69,10 @@ function drawRect(newItem, oldItem) {
 
 function deleteItem(item) {
     if (item) {
+        // if player, delete it from the list of players
+        // FIXME if we work with the players array index here it will be faster
+        const playerIndex = players.findIndex(p => p.id === item.id);
+        if (playerIndex >= 0) players.splice(playerIndex, 1);
         context.clearRect(item.x, item.y, item.size, item.size);
     }
 }
@@ -65,16 +81,9 @@ function drawCircle(newItem, oldItem) {
     deleteItem(oldItem);
     context.fillStyle = newItem.color;
 
-    // Set the starting position and circle properties
-    const x = newItem.x / 2;  // X-coordinate of the circle's center
-    const y = newItem.y / 2; // Y-coordinate of the circle's center
-    const radius = newItem.size / 2;          // Circle's radius
-    const startAngle = 0;        // Start angle (0 radians = 0 degrees)
-    const endAngle = 2 * Math.PI; // End angle (2π radians = 360 degrees)
-
     // Begin a new path to draw the circle
     context.beginPath();
-    context.arc(x, y, radius, startAngle, endAngle);
+    context.arc(newItem.circleX, newItem.circleY, newItem.radius, newItem.startAngle, newItem.endAngle);
     context.fill();  // Draw the filled up circle
 }
 
@@ -118,8 +127,7 @@ function moveRightInterval() {
 
 function moveRight() {
     if (currentPlayer.x + currentPlayer.size + speed <= canvasWidth) {
-        currentPlayer.movePlayer("right", speed);
-        socket.emit('playerMoved', currentPlayer);
+        movePlayer("right", speed);
     } else {
         stopMovingRight();
     }
@@ -140,8 +148,7 @@ function moveLeftInterval() {
 
 function moveLeft() {
     if (currentPlayer.x - speed >= 0) {
-        currentPlayer.movePlayer("left", speed);
-        socket.emit('playerMoved', currentPlayer);
+        movePlayer("left", speed);
     } else {
         stopMovingLeft();
     }
@@ -162,8 +169,7 @@ function moveUpInterval() {
 
 function moveUp() {
     if (currentPlayer.y - speed >= 0) {
-        currentPlayer.movePlayer("up", speed);
-        socket.emit('playerMoved', currentPlayer);
+        movePlayer("up", speed);
     } else {
         stopMovingUp();
     }
@@ -184,8 +190,7 @@ function moveDownInterval() {
 
 function moveDown() {
     if (currentPlayer.y + currentPlayer.size + speed <= canvasHeight) {
-        currentPlayer.movePlayer("down", speed);
-        socket.emit('playerMoved', currentPlayer);
+        movePlayer("down", speed);
     } else {
         stopMovingDown();
     }
@@ -194,5 +199,15 @@ function moveDown() {
 function stopMovingDown() {
     clearInterval(moveDownIntervalId);
     moveDownIntervalId = null;
+}
+
+function movePlayer(dir, speed) {
+    currentPlayer.movePlayer(dir, speed);
+    socket.emit('playerMoved', currentPlayer);
+    if (currentPlayer.collision(currentCollectible)) {
+        currentPlayer.score += currentCollectible.value;
+        // TODO rank
+        socket.emit('scored', currentPlayer.score);
+    }
 }
 
