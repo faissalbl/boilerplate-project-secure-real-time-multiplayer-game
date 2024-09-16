@@ -66,7 +66,7 @@ class Player {
   }
 
   collision(item) {
-    return isCollided(this, item);
+    return isCollided(item, this);
   }
 
   calculateRank(arr) {
