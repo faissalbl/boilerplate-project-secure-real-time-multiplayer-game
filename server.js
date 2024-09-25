@@ -5,11 +5,21 @@ const expect = require('chai');
 const socketIO = require('socket.io');
 const GameService = require('./services/GameService');
 const cors = require('cors');
+const helmet = require('helmet');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
 
 const app = express();
+
+app.use(helmet());
+app.use(helmet.noCache());
+
+// Override the X-Powered-By header to display "PHP 7.4.3"
+app.use((req, res, next) => {
+  res.setHeader('X-Powered-By', 'PHP 7.4.3');
+  next();
+});
 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/assets', express.static(process.cwd() + '/assets'));

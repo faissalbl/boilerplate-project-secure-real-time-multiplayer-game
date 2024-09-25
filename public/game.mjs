@@ -30,7 +30,7 @@ socket.on('deletePlayer', handleDeletePlayer);
 socket.on('updateCollectible', handleUpdateCollectible);
 socket.on('scored', handleScored);
 
-socket.emit('playerJoined', playerSize, headerHeight + 1, canvasWidth, canvasHeight, canvasStartX);
+socket.emit('playerJoined', playerSize, canvasStartY, canvasWidth, canvasHeight, canvasStartX);
 
 function handleCurrentPlayer(player) {
     currentPlayer = new Player(player);
@@ -204,7 +204,7 @@ function moveUpInterval() {
 }
 
 function moveUp() {
-    if (currentPlayer.y - speed >= headerHeight + 1) {
+    if (currentPlayer.y - speed >= canvasStartY) {
         movePlayer("up", speed);
     } else {
         stopMovingUp();
@@ -242,7 +242,7 @@ function movePlayer(dir, speed) {
     socket.emit('playerMoved', currentPlayer);
     if (currentPlayer.collision(currentCollectible)) {
         currentPlayer.score += currentCollectible.value;
-        socket.emit('scored', currentPlayer.score, headerHeight + 1, canvasWidth, canvasHeight, canvasStartX);
+        socket.emit('scored', currentPlayer.score, canvasStartY, canvasWidth, canvasHeight, canvasStartX);
     }
 }
 
