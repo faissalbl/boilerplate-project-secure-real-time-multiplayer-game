@@ -5,10 +5,17 @@ const socket = io('https://3000-freecodecam-boilerplate-kw588w7gghl.ws-us116.git
 const canvas = document.getElementById('game-window');
 const context = canvas.getContext('2d');
 
+const headerStartX = 0;
+const headerStartY = 0;
+const headerHeight = 50;
+const canvasStartX = 0;
+const canvasStartY = headerHeight + 1;
 const canvasWidth = 640; 
 const canvasHeight = 480;
 const speed = 5;
 const framesPerSecond = 50;
+
+const playerSize = 30;
 
 let currentPlayer;
 let currentCollectible;
@@ -21,8 +28,9 @@ socket.on('drawGame', handleDrawGame);
 socket.on('updatePlayer', handleUpdatePlayer);
 socket.on('deletePlayer', handleDeletePlayer);
 socket.on('updateCollectible', handleUpdateCollectible);
+socket.on('scored', handleScored);
 
-socket.emit('playerJoined');
+socket.emit('playerJoined', playerSize, headerHeight + 1, canvasWidth, canvasHeight, canvasStartX);
 
 function handleCurrentPlayer(player) {
     currentPlayer = new Player(player);
@@ -59,6 +67,17 @@ function handleDeletePlayer(player) {
 function handleUpdateCollectible(newCollectible, oldCollectible) {
     currentCollectible = new Collectible(newCollectible);
     requestAnimationFrame(() => drawCircle(currentCollectible, oldCollectible));
+}
+
+function handleScored(player) {
+    const existingPlayer = players.find(p => p.id === player.id);
+    existingPlayer.score = player.score;
+    const rank = currentPlayer.calculateRank(players);
+    requestAnimationFrame(() => drawHeader(rank, players.length));
+}
+
+function drawHeader(rank, numPlayers) {
+    
 }
 
 function drawRect(newItem, oldItem) {
@@ -147,7 +166,7 @@ function moveLeftInterval() {
 }
 
 function moveLeft() {
-    if (currentPlayer.x - speed >= 0) {
+    if (currentPlayer.x - speed >= canvasStartX) {
         movePlayer("left", speed);
     } else {
         stopMovingLeft();
@@ -168,7 +187,7 @@ function moveUpInterval() {
 }
 
 function moveUp() {
-    if (currentPlayer.y - speed >= 0) {
+    if (currentPlayer.y - speed >= headerHeight + 1) {
         movePlayer("up", speed);
     } else {
         stopMovingUp();
@@ -206,8 +225,7 @@ function movePlayer(dir, speed) {
     socket.emit('playerMoved', currentPlayer);
     if (currentPlayer.collision(currentCollectible)) {
         currentPlayer.score += currentCollectible.value;
-        // TODO rank
-        socket.emit('scored', currentPlayer.score);
+        socket.emit('scored', currentPlayer.score, headerHeight + 1, canvasWidth, canvasHeight, canvasStartX);
     }
 }
 
