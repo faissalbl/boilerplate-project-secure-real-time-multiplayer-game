@@ -34,6 +34,7 @@ socket.emit('playerJoined', playerSize, headerHeight + 1, canvasWidth, canvasHei
 
 function handleCurrentPlayer(player) {
     currentPlayer = new Player(player);
+    players.push(currentPlayer);
 }
 
 function handleDrawGame(state) {
@@ -42,6 +43,7 @@ function handleDrawGame(state) {
     }
     currentCollectible = new Collectible(state.activeCollectible);
     handleUpdateCollectible(state.activeCollectible);
+    handleScored(currentPlayer);
 }
 
 function handleUpdatePlayer(newPlayer, oldPlayer) {
@@ -58,10 +60,14 @@ function handleUpdatePlayer(newPlayer, oldPlayer) {
     }
 
     requestAnimationFrame(() => drawRect(newPlayer, oldPlayer));
+    handleScored(currentPlayer);
 }
 
 function handleDeletePlayer(player) {
-    requestAnimationFrame(() => deleteItem(player));
+    requestAnimationFrame(() => { 
+        deleteItem(player, true);
+    });
+    handleScored(currentPlayer);
 }
 
 function handleUpdateCollectible(newCollectible, oldCollectible) {
@@ -77,7 +83,16 @@ function handleScored(player) {
 }
 
 function drawHeader(rank, numPlayers) {
-    
+    context.font = "bold 24px serif";
+    context.fillStyle = 'grey';
+    const text = `Controls: WASD    Coin Race    Rank: ${rank} / ${numPlayers}`;
+    // calculate center
+    const textWidth = context.measureText(text).width;
+    const textStartX = (canvasWidth - textWidth) / 2;
+
+    // fill text centered
+    context.clearRect(headerStartX, headerStartY, canvasWidth, headerHeight);
+    context.fillText(text, textStartX, headerHeight);
 }
 
 function drawRect(newItem, oldItem) {
@@ -86,12 +101,14 @@ function drawRect(newItem, oldItem) {
     context.fillRect(newItem.x, newItem.y, newItem.size, newItem.size);
 }
 
-function deleteItem(item) {
+function deleteItem(item, deleteFromList) {
     if (item) {
         // if player, delete it from the list of players
         // FIXME if we work with the players array index here it will be faster
-        const playerIndex = players.findIndex(p => p.id === item.id);
-        if (playerIndex >= 0) players.splice(playerIndex, 1);
+        if (deleteFromList) {
+            const playerIndex = players.findIndex(p => p.id === item.id);
+            if (playerIndex >= 0) players.splice(playerIndex, 1);
+        }
         context.clearRect(item.x, item.y, item.size, item.size);
     }
 }

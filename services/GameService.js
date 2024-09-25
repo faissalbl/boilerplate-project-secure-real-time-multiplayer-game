@@ -92,7 +92,9 @@ class GameService {
 
     handleScored(score, limitTop, limitRight, limitBottom, limitLeft) {
         this.createCollectible(limitTop, limitRight, limitBottom, limitLeft);
-        // TODO emit all score
+        const currentPlayer = state.players.find(p => p.id === this.client.id);
+        currentPlayer.score = score;
+        this.emitAllFn('scored', currentPlayer);
     }
 
     handleDisconnect() {

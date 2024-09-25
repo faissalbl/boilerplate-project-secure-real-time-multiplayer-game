@@ -71,7 +71,7 @@ class Player {
 
   calculateRank(arr) {
     let rank = 1;
-    thisIndex = arr.findIndex(player => player.id === this.id);
+    const thisIndex = arr.findIndex(player => player.id === this.id);
     arr.forEach((player, index) => {
       // this player will be in the list. Skip comparing to itself.
       if (player.id !== this.id) {
